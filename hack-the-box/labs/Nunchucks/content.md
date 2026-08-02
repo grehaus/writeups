@@ -1,7 +1,7 @@
 ---
 source: Hack the Box
 title: Nunchucks
-tags: Web Exploitation, SSTI, Capabilities, perl
+tags: Web Exploitation, SSTI, Capabilities, Perl
 summary: **Nunchucks:** An SSTI vulnerability leads to remote code execution allowing the attacker to get a remote connection as "david". Further enumeration
 reveals perl has the `CAP_SETUID` capability enabled, allowing the attacker to create and execute arbitrary perl scripts as root.
 ---
