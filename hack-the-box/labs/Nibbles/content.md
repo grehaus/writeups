@@ -2,8 +2,9 @@
 source: Hack the Box
 title: Nibbles
 difficulty: easy
-tags:
-summary:
+tags: File Upload, Nibble CMS, Sudo Abuse
+summary: **Nibles**: A vulnerable `Nibbles CMS` instance can be exploited via authenticated file upload resulting in a remote connection to the machine. User enumeration 
+shows `sudo` privileges to a writeable script that can be abused to do a number of things as the `root` user, ultimately leading to privilege escalation.
 ---
 
 ## [01] Port Scan and Service Discovery
@@ -80,6 +81,8 @@ Matching Defaults entries for nibbler on Nibbles:
 User nibbler may run the following commands on Nibbles:
 !!    (root) NOPASSWD: /home/nibbler/personal/stuff/monitor.sh
 ```
+
+## [04] Abusing Sudo Privileges
 
 Trying to see what that script contains shows there is no such file, but we also find a `personal.zip` that contains the loot.
 ```term
