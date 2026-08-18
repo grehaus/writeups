@@ -1,9 +1,10 @@
 ---
-source:
-title:
-difficulty:
-tags:
-summary:
+source: Hack the Box
+title: SolidState
+difficulty: medium
+tags: Apache James, POP3, File Write
+summary: **SolidState**: A vulnerable Apache James server gives the attacker permission to reset user passwords to access their email inbox. One user (a new hire) was given credentials and did not 
+update the password which gave the attacker remote access. A python script can be modified/overwritten to execute commands as the root user.
 ---
 
 ## [01] Port Scan and Service Discovery
@@ -223,14 +224,16 @@ drwxr-xr-x 11 root root 4096 Apr 26  2021 james-2.3.2
 ```
 
 Seems oddly interesting. We can overwrite it with a privilege escalation  payload to see if:
-1. Our theory is correct, something (most likely cron) is operating on this script.
-2. Since the file is `root` owned, potentially the root user is interacting with it.
+`[1]` Our theory is correct, something (most likely cron) is operating on this script.
+`[2]` Since the file is `root` owned, potentially the root user is interacting with it.
 
 It can be annoying trying to edit files on an unstable connection, so using `sed` I can edit the file, output it as a new file, then overwrite the existing tmp.py. 
 We have to create a new file because sed creates a temporary file as it edits inline. We have write permission to tmp.py, but we do not have write permission to /opt.
 
 ```term
 $ ${debian_chroot:+($debian_chroot)}mindy@solidstate:/opt$ sed 's|rm -r /tmp/\*|chmod +s /bin/bash|g' tmp.py > /tmp/tmp.py 
+```
+```term
 ${debian_chroot:+($debian_chroot)}mindy@solidstate:/opt$ cat /tmp/tmp.py > tmp.py
 ```
 ```term
