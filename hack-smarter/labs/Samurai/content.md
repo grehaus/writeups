@@ -84,7 +84,7 @@ and trying them against our target yields the following:
 $ curl http://10.1.247.101/administrator/manifests/files/joomla.xml
 
 ---snip---
-        <version>4.2.5</version>
+!!        <version>4.2.5</version>
 ---snip---
 ```
 
