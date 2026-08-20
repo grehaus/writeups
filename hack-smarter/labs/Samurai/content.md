@@ -191,7 +191,7 @@ We can run `/opt/backup/Dbmaria` as root with no password.
 
 ```term
 $ www-data@streetcoder:/var/www/html/administrator/templates/atum$ file /opt/backup/DbMaria
-/opt/backup/DbMaria: setuid ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=dfb0bf8319563ccca311f917b82f9ca0a051204f, for GNU/Linux 3.2.0, not stripped
+!!/opt/backup/DbMaria: setuid ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=dfb0bf8319563ccca311f917b82f9ca0a051204f, for GNU/Linux 3.2.0, not stripped
 ```
 
 The `file` command shows it's a compiled binary. We can use `strings` to search the binary for any human readable artifacts to get an idea of what this binary does statically.
