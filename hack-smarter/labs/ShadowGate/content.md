@@ -3,7 +3,8 @@ source: Hack Smarter
 title: ShadowGate
 difficulty: easy
 tags: Active Directory, ADCS, ESC8
-summary:
+summary: Performing user recon reveals domain users. One of the users is vulnerable to AS-REP Roasting which allows the attacker to gain further insight on the domain. Using this information, the attacker can take over another domain account and abuse
+their privileges to perform an NTLM Relay attack against the Active Directory Certificate Services, leading to domain compromise.
 ---
 
 ## [01] Port Scan and Service Discovery
