@@ -204,7 +204,7 @@ Looking at Bloodhound some more, we see that bbrown is a member of the `ADCS-REA
 Knowing we have some sort of access to ADCS, the first step is seeing what's there.
 
 ```term
-$ certipy-ad find -u 'bbrown@shadow.gate' -p '12345678' -dc-ip 10.1.146.118 -vulnerable
+$ certipy-ad find -u 'bbrown@shadow.gate' -p 'xxxxxxxx' -dc-ip 10.1.146.118 -vulnerable
 
 Certipy v5.1.0 - by Oliver Lyak (ly4k)
 
