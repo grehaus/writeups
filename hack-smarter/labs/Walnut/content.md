@@ -72,13 +72,13 @@ This is a very interesting port scan. This is typically something you would see 
 
 We can check for quick hits on NFS and SMB to see if any files are accessible.
 
-`Checking NFS`
+### Checking NFS
 ```term
 $ showmount -e 10.1.23.194
 
 Export list for 10.1.23.194:
 ```
-`Checking SMB`
+### Checking SMB
 ```term
 $ smbclient -L 10.1.23.194 -U 'larryburns'
 
@@ -97,7 +97,7 @@ Unable to connect with SMB1 -- no workgroup available
 
 We are able to find a custom share but we do not have access to it. We can see if there are any other users on the box.
 
-`Checking for Users via nxc`
+### Checking for Users via nxc
 ```term
 $ nxc smb walnut.local -u 'larryburns' -p 'IloveMontgommery!' --users-export users.txt
 
