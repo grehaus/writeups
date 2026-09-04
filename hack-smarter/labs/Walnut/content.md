@@ -147,7 +147,7 @@ SMB         10.1.23.194     445    WALNUT           [*] Enumerated shares
 SMB         10.1.23.194     445    WALNUT           Share           Permissions            Remark
 SMB         10.1.23.194     445    WALNUT           -----           -----------            ------
 SMB         10.1.23.194     445    WALNUT           print$          READ                   Printer Drivers
-SMB         10.1.23.194     445    WALNUT           automation      READ,WRITE             automation share
+!!SMB         10.1.23.194     445    WALNUT           automation      READ,WRITE             automation share
 SMB         10.1.23.194     445    WALNUT           IPC$                                   IPC Service (walnut server (Samba, Ubuntu))
 ```
 
