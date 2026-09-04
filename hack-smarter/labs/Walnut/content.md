@@ -68,7 +68,7 @@ Host script results:
 
 This is a very interesting port scan. This is typically something you would see when scanning a Windows host. With us given initial credentials we can start checking our base level of access.
 
-## [02] Leveraging Credentials To Find Seneitive Information
+## [02] Leveraging Credentials To Find Sensitive Information
 
 We can check for quick hits on NFS and SMB to see if any files are accessible.
 
