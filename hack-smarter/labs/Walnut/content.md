@@ -3,7 +3,7 @@ source: Hack Smarter
 title: Walnut
 difficulty: easy
 tags: LDAP, bash, Service Abuse
-summary: Walnut is an assumed breash scenario in which the client has provided us with credentials of a low privileged user to perform a penetration test on a critical Linux server. These credentials allow an attacker 
+summary: Walnut is an assumed breach scenario in which the client has provided us with credentials of a low privileged user to perform a penetration test on a critical Linux server. These credentials allow an attacker 
 to craft LDAP queries to find sensitive information on another user which can then be used to recover ssh keys allowing the attacker remote access to the system. A custom script can be used to decipher additional user accounts and find additional 
 sensitive information granting access to another user account. This user has sudo privileges to run a specific service that can be abused to export the entire file system which the attacker can mount to their machine.
 ---
