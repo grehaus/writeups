@@ -31,7 +31,7 @@ PORT   STATE SERVICE REASON         VERSION
 
 A teammate was able to grab compromised credentials from `DeHashed`, our first step should be to confirm the validity of these. We can first test for users via `smtp-user-enum` to narrow our list of users to valid smtp users.
 ```term
-$ smtp-user-enum -M VRFY -U names.txt -t 10.1.12.125              
+$ smtp-user-enum -M VRFY -U names.txt -t 10.1.181.116              
 
 Starting smtp-user-enum v1.2 ( http://pentestmonkey.net/tools/smtp-user-enum )
 
@@ -65,7 +65,7 @@ With a total of 499 users and we get 2 hits, this significantly narrows our focu
 Especially on webservers, I like to have enumeration running in the background as I manually inspect the site. Using `ffuf` we can find directories on the site.
 
 ```term
-$ ffuf -w /usr/share/wordlists/SecLists-master/Discovery/Web-Content/directory-list-2.3-medium.txt -u http://10.1.12.125/FUZZ -ac -c
+$ ffuf -w /usr/share/wordlists/SecLists-master/Discovery/Web-Content/directory-list-2.3-medium.txt -u http://10.1.181.116/FUZZ -ac -c
 
 
         /'___\  /'___\           /'___\
@@ -79,7 +79,7 @@ $ ffuf -w /usr/share/wordlists/SecLists-master/Discovery/Web-Content/directory-l
 ________________________________________________
 
  :: Method           : GET
- :: URL              : http://10.1.12.125/FUZZ
+ :: URL              : http://10.1.181.116/FUZZ
  :: Wordlist         : FUZZ: /usr/share/wordlists/SecLists-master/Discovery/Web-Content/directory-list-2.3-medium.txt
  :: Follow redirects : false
  :: Calibration      : true
@@ -97,13 +97,17 @@ We get a hit on `roundcube`. Per `https://roundcube.net/`, we get the following:
 
 We can find the version on the /roundcube/ endpoint in the source code:
 ```term
+---snip---
 var rcmail = new rcube_webmail();
-rcmail.set_env({"task":"login","standard_windows":false,"locale":"en_US","devel_mode":null,`"rcversion":10509`,"cookie_domain":"","cookie_path":"/","cookie_secure":false,"dark_mode_support":true,"skin":"elastic","blankpage":"skins/elastic/watermark.html","refresh_interval":60,"session_lifetime":600,"action":"","comm_path":"./?_task=login","compose_extwin":false,"date_format":"yy-mm-dd","date_format_localized":"YYYY-MM-DD","request_token":"nJqhjxJCSS6gZVIjNeqYU8bPLQnS8PyH"});
+rcmail.set_env({"task":"login","standard_windows":false,"locale":"en_US","devel_mode":null,
+!!"rcversion":10509,
+"cookie_domain":"","cookie_path":"/","cookie_secure":false,"dark_mode_support":true,"skin":"elastic","blankpage":"skins/elastic/watermark.html","refresh_interval":60,"session_lifetime":600,"action":"","comm_path":"./?_task=login","compose_extwin":false,"date_format":"yy-mm-dd","date_format_localized":"YYYY-MM-DD","request_token":"nJqhjxJCSS6gZVIjNeqYU8bPLQnS8PyH"});
 rcmail.add_label({"loading":"Loading...","servererror":"Server Error!","connerror":"Connection Error (Failed to reach the server)!","requesttimedout":"Request timed out","refreshing":"Refreshing...","windowopenerror":"The popup window was blocked!","uploadingmany":"Uploading files...","uploading":"Uploading file...","close":"Close","save":"Save","cancel":"Cancel","alerttitle":"Attention","confirmationtitle":"Are you sure...","delete":"Delete","continue":"Continue","ok":"OK","back":"Back","errortitle":"An error occurred!","options":"Options","plaintoggle":"Plain text","htmltoggle":"HTML","previous":"Previous","next":"Next","select":"Select","browse":"Browse","choosefile":"Choose file...","choosefiles":"Choose files..."});
 rcmail.gui_container("loginfooter","login-footer");rcmail.gui_object('loginform', 'login-form');
 rcmail.gui_object('message', 'messagestack');
-</script>
+---snip---
 ```
+
 
 rcversion:10509 maps to Roundcube 1.5.9 which is vulnerable to `CVE-2025-49113`. The CVE exploit requires valid credentials. We have credentials to try against the login form, however, Roundcube will rate limit us. There is a python script here:
 > https://github.com/robotshell/cubeSpraying
