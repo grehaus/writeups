@@ -210,7 +210,7 @@ tcp6       0      0 :::80                   :::*                    LISTEN      
 tcp6       0      0 :::22                   :::*                    LISTEN      -
 ```
 
-We can forward these ports back to us via ssh tunneling to we can access them from our local machine.
+We can forward these ports back to us via ssh tunneling so we can access them from our local machine.
 ```term
 ssh -L 1025:127.0.0.1:1025 \
 -L 8025:127.0.0.1:8025 \
