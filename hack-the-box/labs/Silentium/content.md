@@ -306,7 +306,7 @@ Unpacking objects: 100% (3/3), 220 bytes | 110.00 KiB/s, done.
 ??ben@silentium:~/code$ git push
 ```
 
-Now use the curl expample and adapt it to our needs.
+Now use the curl example and adapt it to our needs.
 
 ```term
 $ ben@silentium:~/code$ curl -X PUT "http://127.0.0.1:3001/api/v1/repos/jen/code/contents/update.txt" -H "Authorization: token $TOKEN" -H "Content-Type: application/json" -d "{\"message\":\"updates\",\"content\":\"$PAYLOAD\"}" -v | jq
