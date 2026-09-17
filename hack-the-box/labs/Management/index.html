@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hack the Box: Management</title>
+<meta name="description" content="hack-the-box: Management">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+
+<header class="statusbar">
+  <span class="brand">grehaus/writeups/hack-the-box</span>
+  <nav>
+    <a href="/">home</a>
+    <a href="../../../">writeups</a>
+  </nav>
+  <div class="sys">
+    <span class="dot-ochre">● online</span>
+    <span id="clock">00:00:00</span>
+  </div>
+</header>
+
+<main>
+  <p class="lede">guest@grehaus <span class="path">~/writeups/hack-the-box/Management</span></p>
+  <p class="lede back">$ cd .. <a href="../../">→ back to hack-the-box/</a></p>
+
+  <!-- ============ LOCK SCREEN (shown until the password is correct) ============ -->
+  <div id="lock-screen" class="win crt">
+    <div class="win-bar">
+      <div class="win-dots"><span></span><span></span><span></span></div>
+      <div class="win-title">guest@grehaus: ~/writeups/hack-the-box/Management [locked]</div>
+    </div>
+    <div class="win-body lock-body">
+      <p class="row lock-icon">🔒 This write-up is encrypted. Enter the password to decrypt it.</p>
+      <form id="lock-form" class="lock-form">
+        <span class="lock-prompt">$ ./unlock --password</span>
+        <input type="password" id="wu-password" placeholder="••••••••" autocomplete="off" autofocus>
+        <button type="submit" id="lock-submit">./unlock</button>
+      </form>
+      <p id="lock-error" class="lock-error"></p>
+    </div>
+  </div>
+
+  <!-- ============ REAL CONTENT (revealed only after a successful decrypt) ============ -->
+  <div id="unlocked-content" hidden>
+    <div id="protected-infocard-mount"></div>
+    <div class="win crt">
+      <div class="win-bar">
+        <div class="win-dots"><span></span><span></span><span></span></div>
+        <div class="win-title">guest@grehaus: ~/writeups/hack-the-box/Management</div>
+      </div>
+      <div class="win-body" id="protected-term-mount"></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <span class="prompt">exit</span>
+  <span>© <span id="year"></span> grehaus — logged out</span>
+</footer>
+
+<script>
+  const clockEl = document.getElementById('clock');
+  function tick(){
+    const d = new Date();
+    const p = n => String(n).padStart(2,'0');
+    clockEl.textContent = `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+  }
+  tick(); setInterval(tick, 1000);
+  document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+<script src="/assets/markdown-writeup.js"></script>
+<script src="/assets/interactive.js"></script>
+<script src="/assets/lock.js"></script>
+</body>
+</html>
