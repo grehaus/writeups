@@ -5,10 +5,8 @@ difficulty: medium
 tags: Node.js, Gitea, Docker
 summary: An attacker is able to exploit a Node.js sandbox and achieve code execution. This allows the attacker to dump the database and retrieve sensitive information, compromosing the gitea instance. The attacker can then abuse a .yml file and Github Actions to get code execution, resulting in a remote connection to the host. User enumeration shows our user is in the 'docker' group and can be abused to fully compromise the system and achieve root level access.
 ---
-! **Objective**
 ! You have been hired to perform a penetration test against the client's development infrastructure. The dev team relies heavily on a project management application, which they have provided you access to.
 ! Your task is to start as an unauthenticated attacker, identify all vulnerabilities, and demonstrate full impact by compromising the underlying host (if possible).
-! **Initial Access**
 ! The client has provided you with VPN access to their environment, but no other information.
 
 ## [01] Port Scan and Service Discovery
