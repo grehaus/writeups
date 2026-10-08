@@ -33,32 +33,17 @@
   <p class="lede">guest@grehaus <span class="path">~/writeups/hack-smarter/TaskFlow</span></p>
   <p class="lede back">$ cd .. <a href="../../">→ back to hack-smarter/</a></p>
 
-  <!-- ============ LOCK SCREEN (shown until the password is correct) ============ -->
-  <div id="lock-screen" class="win crt">
+  <!-- filled in automatically from content.md -->
+  <div id="infocard-mount"></div>
+
+  <div class="win crt">
     <div class="win-bar">
       <div class="win-dots"><span></span><span></span><span></span></div>
-      <div class="win-title">guest@grehaus: ~/writeups/hack-smarter/TaskFlow [locked]</div>
+      <div class="win-title">guest@grehaus: ~/writeups/hack-smarter/TaskFlow</div>
     </div>
-    <div class="win-body lock-body">
-      <p class="row lock-icon">🔒 This write-up is encrypted. Enter the password to decrypt it.</p>
-      <form id="lock-form" class="lock-form">
-        <span class="lock-prompt">$ ./unlock --password</span>
-        <input type="password" id="wu-password" placeholder="••••••••" autocomplete="off" autofocus>
-        <button type="submit" id="lock-submit">./unlock</button>
-      </form>
-      <p id="lock-error" class="lock-error"></p>
-    </div>
-  </div>
-
-  <!-- ============ REAL CONTENT (revealed only after a successful decrypt) ============ -->
-  <div id="unlocked-content" hidden>
-    <div id="protected-infocard-mount"></div>
-    <div class="win crt">
-      <div class="win-bar">
-        <div class="win-dots"><span></span><span></span><span></span></div>
-        <div class="win-title">guest@grehaus: ~/writeups/hack-smarter/TaskFlow</div>
-      </div>
-      <div class="win-body" id="protected-term-mount"></div>
+    <!-- filled in automatically from content.md -->
+    <div class="win-body" id="term-mount">
+      <p class="row out dim">Loading write-up…</p>
     </div>
   </div>
 </main>
@@ -80,6 +65,5 @@
 </script>
 <script src="/assets/markdown-writeup.js"></script>
 <script src="/assets/interactive.js"></script>
-<script src="/assets/lock.js"></script>
 </body>
 </html>
