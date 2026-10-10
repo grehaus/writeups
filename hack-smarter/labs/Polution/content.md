@@ -99,7 +99,7 @@ Now that we have the cookies, we can curl the `/incident-response` endpoint.
 > Note: You can just as easily add new cookie values in dev tools.
 
 ```term
-$ curl http://10.1.139.91:3000/incident-response -b 'session=HS_ADMIN_7721_SECURE_AUTH_TOKEN; user=admin'
+$ curl http://10.1.139.91:3000/incident-response -b 'session=xxxxxxxx; user=admin'
 
 !!<h1>Flag: HACKSMARTER{xxxxxxxx}</h1> 
 ``` 
