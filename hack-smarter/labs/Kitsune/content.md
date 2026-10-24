@@ -153,7 +153,7 @@ INFO: Done in 00M 10S
 > Gathering bloodound data.
 
 ```term
-$ certipy-ad find -u 'ranch@kitsune.local' -p 'R@nch2026!' -dc-ip 10.0.19.39 -stdout
+$ certipy-ad find -u 'ranch@kitsune.local' -p 'xxxxxxxx' -dc-ip 10.0.19.39 -stdout
   
 !!Template Name                       : Kitsune-User
 !!    Certificate Authorities             : kitsune-DC01-CA
