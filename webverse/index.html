@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>grehaus — Hack The Box</title>
+<meta name="description" content="WebVerse Writeups">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+
+<header class="statusbar">
+  <span class="brand">grehaus/writeups/webverse</span>
+  <nav>
+    <a href="/">home</a>
+    <a href="../">writeups</a>
+  </nav>
+  <div class="sys">
+    <span class="dot-ochre">● online</span>
+    <span id="clock">00:00:00</span>
+  </div>
+</header>
+
+<main>
+  <p class="lede">guest@grehaus <span class="path">~/writeups/webverse</span></p>
+  <p class="lede back">$ cd .. <a href="../">→ back to writeups/</a></p>
+
+  <section>
+    <h2>categories <span>// select a type</span></h2>
+
+    <div class="cat-bar" role="tablist" aria-label="Write-up categories">
+      <button class="cat-btn" id="tab-labs" role="tab" aria-controls="panel-labs" aria-expanded="false">Labs</button>
+      <button class="cat-btn" id="tab-challenges" role="tab" aria-controls="panel-challenges" aria-expanded="false">Challenges</button>
+    </div>
+
+    <div class="cat-panels crt">
+      <div class="cat-panel" id="panel-labs" role="tabpanel" aria-labelledby="tab-labs">
+      </div>
+
+
+      <div class="cat-panel" id="panel-challenges" role="tabpanel" aria-labelledby="tab-challenges">
+        <a class="entry-link difficulty-easy" href="./challenges/Header-Hunt/">
+          <span class="entry-name">Header Hunt</span>
+          <span class="entry-bar" aria-hidden="true">
+            <span class="filled"></span><span class="filled"></span><span></span>
+            <span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span>
+          </span>
+          <span class="entry-tags">
+            <span>Web Requests</span><span>HTTP Headers</span>
+          </span>
+        </a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span class="prompt">exit</span>
+  <span>© <span id="year"></span> grehaus — logged out</span>
+</footer>
+
+<script>
+  const clockEl = document.getElementById('clock');
+  function tick(){
+    const d = new Date();
+    const p = n => String(n).padStart(2,'0');
+    clockEl.textContent = `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+  }
+  tick(); setInterval(tick, 1000);
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // category tab accordion
+  const tabs = document.querySelectorAll('.cat-btn');
+  const panels = document.querySelectorAll('.cat-panel');
+
+  function openTab(tab){
+    tabs.forEach(t => t.setAttribute('aria-expanded', 'false'));
+    panels.forEach(p => p.classList.remove('active'));
+    tab.setAttribute('aria-expanded', 'true');
+    document.getElementById(tab.getAttribute('aria-controls')).classList.add('active');
+  }
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const isOpen = tab.getAttribute('aria-expanded') === 'true';
+      tabs.forEach(t => t.setAttribute('aria-expanded', 'false'));
+      panels.forEach(p => p.classList.remove('active'));
+      if (!isOpen) {
+        tab.setAttribute('aria-expanded', 'true');
+        document.getElementById(tab.getAttribute('aria-controls')).classList.add('active');
+      }
+    });
+  });
+
+  // open Labs by default
+  openTab(document.getElementById('tab-labs'));
+</script>
+</body>
+</html>
