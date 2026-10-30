@@ -4,6 +4,7 @@ title: JoyStick
 difficulty: easy
 tags: WebSockets, IDOR/BOLA
 summary: An online store suffers from Insecure Direct Object Reference (IDOR) which is a form of Broken Object Level Authorization (BOLA). Through normal online transactions of creating an account, adding items to the cart, and completing the purchase process, the HTML source code on the users order tracking shows a live websocket. This can be abused by connecting to the websocket and searching for other users orders.
+target: https://dashboard.webverselabs-pro.com/events/joystick
 ---
 ! Founded by two roommates who got tired of refreshing for shipping updates from other shops. Their pitch: live order status the moment anything changes, no page refresh required. The live tracker is their whole differentiator, and the first thing they shipped to production. 
 
