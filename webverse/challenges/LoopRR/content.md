@@ -54,7 +54,7 @@ We now have the git history, we can investigate more.
 ## [02] Investigating git logs
 
 Now we need to navigate to the directory we told git-dumper to store all the logs. We can then run `git log` to see the previous commits - 
-```bash
+```git
 commit 438b795c2f8f930acf2d4e75121fa47249c4e1d7 (HEAD -> main)
 Author: Aphra Vidler <aphra@looproam.records>
 Date:   Mon Feb 12 19:48:00 2024 +0000
@@ -107,7 +107,7 @@ Date:   Mon Feb 5 15:22:00 2024 +0000
 
 There are quite a few here, but commit `77933b93c55f65fd2933833e8e99a5ce6723ed08` stands out. The commit states it removed the .env file and states not to commit secrets. We can view this commit with `git show <commit ID>`.
 
-```bash
+```git
 commit 77933b93c55f65fd2933833e8e99a5ce6723ed08
 Author: Aphra Vidler <aphra@looproam.records>
 Date:   Tue Feb 6 22:41:00 2024 +0000
