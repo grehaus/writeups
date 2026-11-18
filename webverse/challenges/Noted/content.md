@@ -5,7 +5,7 @@ difficulty: easy
 tags: Account Takeover, User Disclosure
 summary: The admin account is leaked on the site allowing the attacker to formulate various attacks. The password reset function sends the user information from the client side, which can be tampered with, allowing the attacker to take over the admin (or any other) account.
 target: https://dashboard.webverselabs-pro.com/events/noted
-platform: https://dashboard.webverselabs-pro.com/dashboard
+platform: https://webverselabs-pro.com/
 ---
 
 ! The whole team runs on Noted: standups, 1:1s, customer calls, all captured and summarised. Past the notes and the settings there's an internal admin area the staff use to run the workspace. Your objective is to reach it. 
